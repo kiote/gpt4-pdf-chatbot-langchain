@@ -1,5 +1,5 @@
 /**
- * Change the index and namespace to your own
+ * Change the namespace to the namespace on Pinecone you'd like to store your embeddings.
  */
 
 const PINECONE_INDEX_NAME = 'pdf';
