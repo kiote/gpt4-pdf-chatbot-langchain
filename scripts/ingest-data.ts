@@ -6,7 +6,7 @@ import { CustomPDFLoader } from '@/utils/customPDFLoader';
 import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
 import { DirectoryLoader } from 'langchain/document_loaders';
 
-/* Name of directory to retrieve files from. You can change this as required */
+/* Name of directory to retrieve your files from */
 const filePath = 'docs';
 
 export const run = async () => {
