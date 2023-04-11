@@ -9,7 +9,7 @@ import asyncio
 
 load_dotenv()
 
-async def search_zotero(user_id, library_type, api_key, document_title):
+def search_zotero(user_id, library_type, api_key, document_title):
     # Create a Zotero instance
     zot = zotero.Zotero(user_id, library_type, api_key)
 
@@ -51,7 +51,7 @@ async def search_zotero(user_id, library_type, api_key, document_title):
                 shutil.copy(pdf_path, target_file_path)
     return 1
 
-async def pinecone_index():
+def pinecone_index():
     pinecone.init(api_key=os.environ['PINECONE_API_KEY'], environment='us-west4-gcp')
     index_name = "pdf"
     try:
@@ -77,10 +77,10 @@ async def main():
     document_title = os.environ['DOCUMENT_TITLE']
     library_type = 'user'  # or 'group'
     await asyncio.gather(
-        search_zotero(user_id, library_type, api_key, document_title),
-        pinecone_index()
+        asyncio.to_thread(search_zotero, user_id, library_type, api_key, document_title),
+        asyncio.to_thread(pinecone_index)
     )
-
+    time.sleep(15)
     pnpm_command = "pnpm run ingest"
     try:
         subprocess.run(pnpm_command, shell=True, check=True)
