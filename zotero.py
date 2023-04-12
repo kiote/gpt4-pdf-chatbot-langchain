@@ -6,8 +6,32 @@ import pinecone
 import time
 import subprocess
 import asyncio
+import cachetools
+from cachetools import cached
 
 load_dotenv()
+
+# Set up a cache with a maximum size of 1000 items
+cache = cachetools.LRUCache(maxsize=1000)
+
+# In case you want to clear the cache
+# cache.clear()
+
+# Custom key function that converts lists and dictionaries into hashable structures
+def custom_key(*args, **kwargs):
+    def convert(obj):
+        if isinstance(obj, list):
+            return tuple(convert(e) for e in obj)
+        elif isinstance(obj, dict):
+            return frozenset((k, convert(v)) for k, v in obj.items())
+        else:
+            return obj
+
+    return tuple(convert(arg) for arg in args)
+
+@cached(cache, key=custom_key)
+def get_everything(zot, query):
+    return zot.everything(query)
 
 def search_zotero(user_id, library_type, api_key, document_title):
     # Create a Zotero instance
@@ -16,8 +40,9 @@ def search_zotero(user_id, library_type, api_key, document_title):
     # Provide the title you want to search for
     search_title = document_title
 
-    journal_articles = zot.everything(zot.items(itemType='journalArticle'))
-    conference_papers = zot.everything(zot.items(itemType='conferencePaper'))
+    journal_articles = get_everything(zot, zot.items(itemType='journalArticle'))
+    conference_papers = get_everything(zot, zot.items(itemType='conferencePaper'))
+
     all_papers = journal_articles + conference_papers
     # Find the parent item(s) with the provided title
     parent_items = [item for item in all_papers if item['data']['title'].lower().find(search_title.lower()) != -1]
